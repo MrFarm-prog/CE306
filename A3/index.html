@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมบัญชีรายรับ-รายจ่าย</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1> โปรแกรมบัญชีรายรับ-รายจ่าย</h1>
+
+        <!-- เพิ่มรายการ -->
+        <div class="form">
+            <input type="text" id="name" placeholder="ชื่อรายการ">
+
+            <select id="type">
+                <option value="income">รายรับ</option>
+                <option value="expense">รายจ่าย</option>
+            </select>
+
+            <select id="category">
+                <option value="อาหาร"> อาหาร</option>
+                <option value="เดินทาง"> เดินทาง</option>
+                <option value="ช้อปปิ้ง"> ช้อปปิ้ง</option>
+                <option value="เงินเดือน"> เงินเดือน</option>
+                <option value="อื่นๆ"> อื่นๆ</option>
+            </select>
+
+            <input type="number" id="amount" placeholder="จำนวนเงิน">
+
+            <button onclick="addTransaction()">เพิ่มรายการ</button>
+        </div>
+
+        <!-- ค้นหา -->
+        <input
+            type="text"
+            id="search"
+            placeholder="🔎 ค้นหาชื่อรายการ..."
+            oninput="displayTransactions()"
+        >
+
+        <!-- สรุป -->
+        <div class="summary">
+            <div>
+                <h3>รายรับรวม</h3>
+                <p id="totalIncome">฿0.00</p>
+            </div>
+
+            <div>
+                <h3>รายจ่ายรวม</h3>
+                <p id="totalExpense">฿0.00</p>
+            </div>
+
+            <div>
+                <h3>เงินคงเหลือ</h3>
+                <p id="balance">฿0.00</p>
+            </div>
+        </div>
+
+        <!-- ประวัติ -->
+        <h2>ประวัติรายการทั้งหมด</h2>
+
+        <ul id="transactionList"></ul>
+
+        <!-- ล้างข้อมูล -->
+        <button class="clear-btn" onclick="clearAll()">
+            ล้างข้อมูลทั้งหมด
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
