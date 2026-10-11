@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เขาวงกตสมบัติ</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = { darkMode: 'class' };
+</script>
+<script>
+  // Dark mode: follow OS setting, but respect data-theme from the host viewer if present.
+  (function () {
+    var root = document.documentElement;
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function apply() {
+      var t = root.getAttribute('data-theme');
+      var dark = t === 'dark' || (t !== 'light' && mq.matches);
+      root.classList.toggle('dark', dark);
+    }
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    new MutationObserver(apply).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  })();
+</script>
+<style>
+  :root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+</style>
+<style type="text/tailwindcss">
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold shadow-sm transition-colors motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:opacity-50 disabled:cursor-not-allowed forced-colors:border forced-colors:border-[ButtonText];
+  }
+  .btn-primary {
+    @apply bg-teal-700 text-white hover:bg-teal-800 dark:bg-amber-400 dark:text-slate-900 dark:hover:bg-amber-300;
+  }
+  .btn-secondary {
+    @apply bg-white text-slate-900 border border-slate-300 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-500 dark:hover:bg-slate-600;
+  }
+  .panel {
+    @apply rounded-xl border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 forced-colors:border-[CanvasText];
+  }
+</style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans">
+
+<div class="mx-auto flex max-w-5xl flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8">
+
+  <header class="flex flex-col gap-1">
+    <h1 class="text-3xl font-extrabold tracking-tight text-teal-800 dark:text-amber-300 sm:text-4xl">🗝️ เขาวงกตสมบัติ</h1>
+    <p class="text-slate-700 dark:text-slate-300">เก็บอัญมณีให้ครบ แล้วหาทางออกก่อนก้าวเดินหมด</p>
+  </header>
+
+  <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
+
+    <!-- ฝั่งเกม -->
+    <main class="flex flex-col gap-3">
+      <section aria-labelledby="stats-heading" class="panel">
+        <h2 id="stats-heading" class="sr-only">สถิติของเกม</h2>
+        <dl class="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <dt class="text-sm text-slate-600 dark:text-slate-400">Level</dt>
+            <dd id="stat-level" class="text-2xl font-bold">1 / 5</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-slate-600 dark:text-slate-400">ก้าวที่เหลือ</dt>
+            <dd id="stat-moves" class="text-2xl font-bold">0</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-slate-600 dark:text-slate-400">อัญมณี 💎</dt>
+            <dd id="stat-gems" class="text-2xl font-bold">0 / 0</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="board-heading" class="panel">
+        <h2 id="board-heading" class="sr-only">แผนที่เขาวงกต</h2>
+        <div id="board" role="img" aria-label="แผนที่เขาวงกต"
+             class="mx-auto grid aspect-square w-full max-w-[34rem] gap-px overflow-hidden rounded-lg border-2 border-teal-900 bg-teal-900 dark:border-slate-500 dark:bg-slate-500 forced-colors:border-[CanvasText]"></div>
+      </section>
+
+      <p id="status" role="status" aria-live="polite"
+         class="rounded-xl border-2 border-sky-600 bg-sky-50 p-3 text-center text-lg font-semibold text-sky-900 dark:border-sky-400 dark:bg-sky-950 dark:text-sky-100 forced-colors:border-[CanvasText]"></p>
+    </main>
+
+    <!-- ฝั่งควบคุม -->
+    <aside class="flex flex-col gap-3" aria-label="แผงควบคุมเกม">
+
+      <section class="panel" aria-labelledby="player-heading">
+        <h2 id="player-heading" class="mb-2 text-lg font-bold">ผู้เล่น</h2>
+        <form id="name-form" class="flex gap-2">
+          <label for="player-name" class="sr-only">ชื่อผู้เล่น</label>
+          <input id="player-name" name="player-name" type="text" maxlength="20" autocomplete="nickname" placeholder="ชื่อนักสำรวจ"
+                 class="min-w-0 flex-1 rounded-lg border border-slate-400 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400">
+          <button type="submit" class="btn btn-secondary">ตั้งชื่อ</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="control-heading">
+        <h2 id="control-heading" class="mb-2 text-lg font-bold">เมนู</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn-restart" type="button" class="btn btn-primary col-span-2">🔄 เริ่มใหม่</button>
+          <button id="btn-next" type="button" class="btn btn-primary col-span-2 hidden">➡️ ด่านถัดไป</button>
+          <button id="btn-level-up" type="button" class="btn btn-secondary">⬆️ เพิ่ม Level</button>
+          <button id="btn-level-down" type="button" class="btn btn-secondary">⬇️ ลด Level</button>
+          <button id="btn-help" type="button" class="btn btn-secondary col-span-2">❓ วิธีเล่น</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="pad-heading">
+        <h2 id="pad-heading" class="mb-2 text-lg font-bold">ปุ่มเดิน</h2>
+        <div class="mx-auto grid w-44 grid-cols-3 gap-2">
+          <span></span>
+          <button type="button" data-dir="up" aria-label="เดินขึ้น" class="btn btn-secondary !px-0">▲</button>
+          <span></span>
+          <button type="button" data-dir="left" aria-label="เดินซ้าย" class="btn btn-secondary !px-0">◀</button>
+          <button type="button" data-dir="down" aria-label="เดินลง" class="btn btn-secondary !px-0">▼</button>
+          <button type="button" data-dir="right" aria-label="เดินขวา" class="btn btn-secondary !px-0">▶</button>
+        </div>
+        <p class="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">คีย์บอร์ด: ลูกศร หรือ W A S D · กด R เพื่อเริ่มใหม่</p>
+      </section>
+
+      <section class="panel" aria-labelledby="rules-heading">
+        <h2 id="rules-heading" class="mb-2 text-lg font-bold">กติกา</h2>
+        <ul class="list-disc space-y-1 pl-5 text-sm">
+          <li>เดินได้ทีละช่อง ทุกก้าวที่เดินสำเร็จจะลดก้าวที่เหลือ 1</li>
+          <li>เก็บ 💎 ให้ครบทุกชิ้นก่อนเข้าประตู 🚪</li>
+          <li><strong>ชนะ:</strong> เก็บครบแล้วเข้าประตูได้ทันก้าวที่กำหนด</li>
+          <li><strong>แพ้:</strong> ก้าวหมดก่อนถึงประตู</li>
+          <li>ผ่านครบ 5 Level คือชนะทั้งเกม</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<!-- หน้าต่างวิธีเล่น -->
+<dialog id="help-dialog" aria-labelledby="help-title"
+        class="w-[92vw] max-w-lg rounded-2xl border-2 border-teal-800 bg-white p-0 text-slate-900 backdrop:bg-black/60 dark:border-amber-300 dark:bg-slate-900 dark:text-slate-100 forced-colors:border-[CanvasText]">
+  <div class="flex flex-col gap-3 p-5">
+    <h2 id="help-title" class="text-2xl font-bold text-teal-800 dark:text-amber-300">วิธีเล่น</h2>
+    <ol class="list-decimal space-y-2 pl-5">
+      <li>ใช้ปุ่มลูกศร หรือ W A S D (หรือกดปุ่มบนหน้าจอ) เพื่อเดินตัวละคร 🧙 ในเขาวงกต</li>
+      <li>เดินไปทับ 💎 เพื่อเก็บ ต้องเก็บให้ครบทุกชิ้น</li>
+      <li>เมื่อเก็บครบ ให้เดินไปที่ประตู 🚪 ก่อนก้าวที่เหลือจะหมด</li>
+      <li>ชนกำแพงจะไม่เสียก้าว แต่การเดินไปมาในทางเดิมเสียก้าวตามปกติ</li>
+      <li>ปุ่ม “เพิ่ม Level” ทำให้เขาวงกตใหญ่ขึ้น อัญมณีมากขึ้น และก้าวที่ให้น้อยลง</li>
+      <li>ชนะ Level 5 คือจบเกม 🏆</li>
+    </ol>
+    <p class="text-sm text-slate-600 dark:text-slate-400">เคล็ดลับ: วางแผนเส้นทางที่ผ่านอัญมณีทั้งหมดก่อนเริ่มเดิน และกด Esc เพื่อปิดหน้าต่างนี้</p>
+    <form method="dialog" class="flex justify-end">
+      <button id="help-close" class="btn btn-primary">เข้าใจแล้ว</button>
+    </form>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  var LEVELS = [
+    { size: 9,  factor: 2.2 },
+    { size: 11, factor: 2.0 },
+    { size: 13, factor: 1.8 },
+    { size: 15, factor: 1.6 },
+    { size: 17, factor: 1.45 }
+  ];
+  var MAX_LEVEL = LEVELS.length;
+  var DIRS = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+
+  // คลาส Tailwind เขียนครบทุกชื่อ (ไม่ต่อสตริง)
+  var CLS = {
+    cellBase: 'flex items-center justify-center leading-none text-[min(3.4vw,1.5rem)] select-none ',
+    wall: 'bg-teal-900 dark:bg-slate-950 forced-colors:bg-[CanvasText]',
+    floor: 'bg-white dark:bg-slate-700 forced-colors:bg-[Canvas]',
+    exit: 'bg-amber-200 dark:bg-amber-700 forced-colors:bg-[Canvas]',
+    player: 'bg-sky-200 ring-2 ring-inset ring-sky-600 dark:bg-sky-800 dark:ring-sky-300 forced-colors:bg-[Canvas] forced-colors:ring-[Highlight]',
+    statusPlay: 'rounded-xl border-2 border-sky-600 bg-sky-50 p-3 text-center text-lg font-semibold text-sky-900 dark:border-sky-400 dark:bg-sky-950 dark:text-sky-100 forced-colors:border-[CanvasText]',
+    statusWarn: 'rounded-xl border-2 border-amber-600 bg-amber-50 p-3 text-center text-lg font-semibold text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-100 forced-colors:border-[CanvasText]',
+    statusWin: 'rounded-xl border-2 border-emerald-600 bg-emerald-50 p-3 text-center text-lg font-bold text-emerald-900 dark:border-emerald-400 dark:bg-emerald-950 dark:text-emerald-100 forced-colors:border-[CanvasText]',
+    statusLose: 'rounded-xl border-2 border-rose-600 bg-rose-50 p-3 text-center text-lg font-bold text-rose-900 dark:border-rose-400 dark:bg-rose-950 dark:text-rose-100 forced-colors:border-[CanvasText]',
+    movesLow: 'text-2xl font-bold text-rose-700 dark:text-rose-300',
+    movesOk: 'text-2xl font-bold'
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var boardEl = $('board'), statusEl = $('status');
+  var level = 1, playerName = '', game = null;
+
+  function rand(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = rand(i + 1), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // สร้างเขาวงกตด้วย recursive backtracker แล้วเจาะกำแพงเพิ่มให้มีทางวน
+  function makeMaze(n) {
+    var g = [], r, c;
+    for (r = 0; r < n; r++) { g.push(new Array(n).fill(1)); }
+    var stack = [[1, 1]];
+    g[1][1] = 0;
+    while (stack.length) {
+      var cur = stack[stack.length - 1];
+      var opts = shuffle([[2, 0], [-2, 0], [0, 2], [0, -2]]).filter(function (d) {
+        var nr = cur[0] + d[0], nc = cur[1] + d[1];
+        return nr > 0 && nc > 0 && nr < n - 1 && nc < n - 1 && g[nr][nc] === 1;
+      });
+      if (!opts.length) { stack.pop(); continue; }
+      var d = opts[0];
+      g[cur[0] + d[0] / 2][cur[1] + d[1] / 2] = 0;
+      g[cur[0] + d[0]][cur[1] + d[1]] = 0;
+      stack.push([cur[0] + d[0], cur[1] + d[1]]);
+    }
+    var extra = Math.floor(n / 2);
+    for (var t = 0; t < 200 && extra > 0; t++) {
+      r = 1 + rand(n - 2); c = 1 + rand(n - 2);
+      if (g[r][c] === 1) {
+        var h = g[r][c - 1] === 0 && g[r][c + 1] === 0;
+        var v = g[r - 1][c] === 0 && g[r + 1][c] === 0;
+        if (h !== v) { g[r][c] = 0; extra--; }
+      }
+    }
+    return g;
+  }
+
+  function bfs(g, sr, sc) {
+    var n = g.length, dist = [], r, c;
+    for (r = 0; r < n; r++) { dist.push(new Array(n).fill(-1)); }
+    dist[sr][sc] = 0;
+    var q = [[sr, sc]], i = 0;
+    while (i < q.length) {
+      var p = q[i++];
+      for (var k in DIRS) {
+        var nr = p[0] + DIRS[k][0], nc = p[1] + DIRS[k][1];
+        if (g[nr][nc] === 0 && dist[nr][nc] === -1) {
+          dist[nr][nc] = dist[p[0]][p[1]] + 1;
+          q.push([nr, nc]);
+        }
+      }
+    }
+    return dist;
+  }
+
+  function newGame() {
+    var cfg = LEVELS[level - 1], n = cfg.size;
+    var g = makeMaze(n);
+    var dist = bfs(g, 1, 1);
+
+    // ประตูอยู่ไกลสุดจากจุดเริ่มต้น
+    var exit = [1, 1], best = -1, r, c;
+    var floors = [];
+    for (r = 1; r < n - 1; r++) {
+      for (c = 1; c < n - 1; c++) {
+        if (g[r][c] === 0) {
+          floors.push([r, c]);
+          if (dist[r][c] > best) { best = dist[r][c]; exit = [r, c]; }
+        }
+      }
+    }
+
+    var gemCount = 2 + level;
+    var candidates = shuffle(floors.filter(function (p) {
+      var isStart = p[0] === 1 && p[1] === 1;
+      var isExit = p[0] === exit[0] && p[1] === exit[1];
+      return !isStart && !isExit && dist[p[0]][p[1]] > 3;
+    }));
+    var gems = candidates.slice(0, gemCount);
+
+    // ประมาณเส้นทางสั้นแบบ greedy เพื่อกำหนดก้าวที่ให้
+    var pos = [1, 1], remaining = gems.slice(), total = 0;
+    while (remaining.length) {
+      var d = bfs(g, pos[0], pos[1]), bi = 0;
+      for (var i = 1; i < remaining.length; i++) {
+        if (d[remaining[i][0]][remaining[i][1]] < d[remaining[bi][0]][remaining[bi][1]]) { bi = i; }
+      }
+      total += d[remaining[bi][0]][remaining[bi][1]];
+      pos = remaining.splice(bi, 1)[0];
+    }
+    total += bfs(g, pos[0], pos[1])[exit[0]][exit[1]];
+    var limit = Math.ceil(total * cfg.factor);
+
+    var gemSet = {};
+    gems.forEach(function (p) { gemSet[p[0] + ',' + p[1]] = true; });
+
+    game = {
+      g: g, n: n, pr: 1, pc: 1, exit: exit, gems: gemSet,
+      gemTotal: gems.length, gemGot: 0, moves: limit, over: false, won: false
+    };
+    var intro = (playerName ? playerName + ' ' : '') + 'เริ่ม Level ' + level + '! เก็บ 💎 ให้ครบ ' + game.gemTotal + ' ชิ้น แล้วไปที่ประตู 🚪';
+    render(intro, 'play');
+  }
+
+  function render(message, tone) {
+    var g = game, html = '', r, c;
+    boardEl.style.gridTemplateColumns = 'repeat(' + g.n + ', minmax(0, 1fr))';
+    for (r = 0; r < g.n; r++) {
+      for (c = 0; c < g.n; c++) {
+        var cls = CLS.cellBase, icon = '';
+        var isPlayer = r === g.pr && c === g.pc;
+        var isExit = r === g.exit[0] && c === g.exit[1];
+        if (g.g[r][c] === 1) {
+          cls += CLS.wall;
+        } else if (isPlayer) {
+          cls += CLS.player; icon = g.won ? '🥳' : (g.over ? '😵' : '🧙');
+        } else if (isExit) {
+          cls += CLS.exit; icon = '🚪';
+        } else {
+          cls += CLS.floor;
+          if (g.gems[r + ',' + c]) { icon = '💎'; }
+        }
+        html += '<div aria-hidden="true" class="' + cls + '">' + icon + '</div>';
+      }
+    }
+    boardEl.innerHTML = html;
+    boardEl.setAttribute('aria-label',
+      'แผนที่เขาวงกต ' + g.n + ' คูณ ' + g.n + ' ตัวละครอยู่แถวที่ ' + g.pr + ' คอลัมน์ที่ ' + g.pc +
+      ' เก็บอัญมณีแล้ว ' + g.gemGot + ' จาก ' + g.gemTotal);
+
+    $('stat-level').textContent = level + ' / ' + MAX_LEVEL;
+    var movesEl = $('stat-moves');
+    movesEl.textContent = g.moves;
+    movesEl.className = (g.moves <= 8 && !g.over) ? CLS.movesLow : CLS.movesOk;
+    $('stat-gems').textContent = g.gemGot + ' / ' + g.gemTotal;
+
+    $('btn-level-up').disabled = level >= MAX_LEVEL;
+    $('btn-level-down').disabled = level <= 1;
+    $('btn-next').classList.toggle('hidden', !(g.won && level < MAX_LEVEL));
+
+    statusEl.className = tone === 'win' ? CLS.statusWin : tone === 'lose' ? CLS.statusLose : tone === 'warn' ? CLS.statusWarn : CLS.statusPlay;
+    statusEl.textContent = message;
+  }
+
+  function move(dir) {
+    if (!game || game.over) { return; }
+    var d = DIRS[dir], g = game;
+    var nr = g.pr + d[0], nc = g.pc + d[1];
+    if (g.g[nr][nc] === 1) {
+      render('ชนกำแพง! ลองเส้นทางอื่น (ไม่เสียก้าว)', 'warn');
+      return;
+    }
+    g.pr = nr; g.pc = nc; g.moves--;
+    var key = nr + ',' + nc, msg = 'เดินต่อไป… เหลืออีก ' + g.moves + ' ก้าว', tone = 'play';
+
+    if (g.gems[key]) {
+      delete g.gems[key]; g.gemGot++;
+      msg = 'เก็บอัญมณีได้แล้ว ' + g.gemGot + ' / ' + g.gemTotal + ' ชิ้น 💎';
+    }
+
+    var atExit = nr === g.exit[0] && nc === g.exit[1];
+    if (atExit && g.gemGot === g.gemTotal) {
+      g.over = true; g.won = true;
+      if (level === MAX_LEVEL) {
+        render('🏆 ชนะทั้งเกม! ' + (playerName ? playerName + ' ' : '') + 'คุณผ่านครบ ' + MAX_LEVEL + ' Level แล้ว กด “เริ่มใหม่” เพื่อเล่นอีกครั้ง', 'win');
+      } else {
+        render('🎉 ผ่าน Level ' + level + '! เหลืออีก ' + g.moves + ' ก้าว กด “ด่านถัดไป” หรือ “เพิ่ม Level”', 'win');
+      }
+      return;
+    }
+    if (atExit) {
+      msg = 'ประตูยังล็อกอยู่! ต้องเก็บอัญมณีอีก ' + (g.gemTotal - g.gemGot) + ' ชิ้น';
+      tone = 'warn';
+    }
+    if (g.moves <= 0) {
+      g.over = true;
+      render('💥 แพ้แล้ว ก้าวหมดก่อนออกจากเขาวงกต กด “เริ่มใหม่” เพื่อลองอีกครั้ง', 'lose');
+      return;
+    }
+    render(msg, tone);
+  }
+
+  function setLevel(l) {
+    level = Math.min(MAX_LEVEL, Math.max(1, l));
+    newGame();
+  }
+
+  // ปุ่มต่าง ๆ
+  $('btn-restart').addEventListener('click', newGame);
+  $('btn-next').addEventListener('click', function () { setLevel(level + 1); });
+  $('btn-level-up').addEventListener('click', function () { setLevel(level + 1); });
+  $('btn-level-down').addEventListener('click', function () { setLevel(level - 1); });
+
+  var dialog = $('help-dialog');
+  $('btn-help').addEventListener('click', function () {
+    if (typeof dialog.showModal === 'function') { dialog.showModal(); } else { dialog.setAttribute('open', ''); }
+  });
+  dialog.addEventListener('click', function (e) { if (e.target === dialog) { dialog.close(); } });
+
+  document.querySelectorAll('[data-dir]').forEach(function (b) {
+    b.addEventListener('click', function () { move(b.getAttribute('data-dir')); });
+  });
+
+  $('name-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('player-name').value.trim();
+    playerName = v;
+    statusEl.className = CLS.statusPlay;
+    statusEl.textContent = v ? 'สวัสดี ' + v + '! พร้อมออกสำรวจแล้ว' : 'ล้างชื่อผู้เล่นแล้ว';
+  });
+
+  // คีย์บอร์ด
+  var KEYMAP = {
+    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+    w: 'up', s: 'down', a: 'left', d: 'right',
+    W: 'up', S: 'down', A: 'left', D: 'right'
+  };
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { return; }
+    if (dialog.open || e.ctrlKey || e.metaKey || e.altKey) { return; }
+    if (KEYMAP[e.key]) { e.preventDefault(); move(KEYMAP[e.key]); }
+    else if (e.key === 'r' || e.key === 'R') { newGame(); }
+  });
+
+  newGame();
+})();
+</script>
+</body>
+</html>
